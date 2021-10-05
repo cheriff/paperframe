@@ -50,10 +50,12 @@ struct pngStream {
     int action;
     IHDR_t imageHeader;
 
-    // Track the pixel row being flushed into
+    // line buffer we are curerntly populating
+    uint8_t line[300]; // assumes image width 600px
+    // Which image row the line buffer contains
     int currentY;
-    // and the current position therein
-    int currentX; // in bytes (2 pixels)
+    // and out current position therein in bytes (2 pixels)
+    int currentX;
 
 #if defined (VIZ_DECODE )
     uint8_t *pallete;

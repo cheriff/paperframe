@@ -17,7 +17,7 @@ void
 flush_imgBuff( pngStream_t *stream, size_t size, void *data )
 {
     log_debug( "FLUSHING: %d @ %p\n", size, data);
-    static uint8_t line[300];
+    uint8_t *line = stream->line;
     uint8_t *buff = data;
 
     if (stream->currentX==0 && stream->currentY==0) {
@@ -282,12 +282,15 @@ parseChunk(pngStream_t *stream, size_t size, void *data)
 
 }
 
+// png header.
+static const uint8_t
+expected[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+
 void
 validateSignature(pngStream_t *stream, size_t size, void *data)
 {
     assert( size == 8 );
     log_trace( "Have signature!");
-    static uint8_t expected[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
     if ( memcmp( expected, data, size ) ) {
         stream->valid = 0;
         return;
