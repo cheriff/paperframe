@@ -1,6 +1,8 @@
 *.sw?
+*.o
 
 rpi-pico/build
 rpi-pico/pngpush
 rpi-pico/pico-sdk
 rpi-pico/picotool
+utilities/png2png/png2png
