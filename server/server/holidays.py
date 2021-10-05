@@ -2,7 +2,7 @@ import datetime
 
 holidays = {
     datetime.date(2021, 9, 6): "Labor Day",
-    datetime.date(2021, 10, 11): "Columbus Day",
+    datetime.date(2021, 10, 25): "Julia B.Day",
     datetime.date(2021, 11, 11): "Veterans Day",
     datetime.date(2021, 11, 25): "Thanksgiving",
     datetime.date(2021, 12, 25): "Christmas",

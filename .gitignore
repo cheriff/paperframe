@@ -1,6 +1,8 @@
 *.sw?
 *.o
 
+__pycache__
+*.pickle
 rpi-pico/build
 rpi-pico/pngpush
 rpi-pico/pico-sdk

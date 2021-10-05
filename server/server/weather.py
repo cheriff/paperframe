@@ -141,17 +141,16 @@ class ImageComposer7:
     def draw_temps(self, context: cairo.Context):
         # Draw on temperature ranges
         temp_min, temp_max = self.weather.temp_range_24hr()
-        c_to_f = lambda c: (c * (9 / 5)) + 32
         # Draw background rects
-        self.draw_roundrect(context, 335, 5, 85, 90, 5)
+        self.draw_roundrect(context, 360, 5, 75, 65, 5)
         context.set_source_rgb(*BLUE)
         context.fill()
-        self.draw_roundrect(context, 510, 5, 85, 90, 5)
+        self.draw_roundrect(context, 520, 5, 75, 65, 5)
         context.set_source_rgb(*RED)
         context.fill()
         self.draw_text(
             context,
-            position=(377, 55),
+            position=(395, 55),
             text=round(temp_min),
             color=WHITE,
             weight="bold",
@@ -160,15 +159,7 @@ class ImageComposer7:
         )
         self.draw_text(
             context,
-            position=(377, 82),
-            text=round(c_to_f(temp_min)),
-            color=WHITE,
-            size=23,
-            align="center",
-        )
-        self.draw_text(
-            context,
-            position=(465, 55),
+            position=(475, 55),
             text=round(self.weather.temp_current()),
             color=BLACK,
             weight="bold",
@@ -177,27 +168,11 @@ class ImageComposer7:
         )
         self.draw_text(
             context,
-            position=(465, 82),
-            text=round(c_to_f(self.weather.temp_current())),
-            color=BLACK,
-            size=23,
-            align="center",
-        )
-        self.draw_text(
-            context,
-            position=(553, 55),
+            position=(558, 55),
             text=round(temp_max),
             color=WHITE,
             weight="bold",
             size=50,
-            align="center",
-        )
-        self.draw_text(
-            context,
-            position=(553, 82),
-            text=round(c_to_f(temp_max)),
-            color=WHITE,
-            size=23,
             align="center",
         )
 
@@ -336,13 +311,11 @@ class ImageComposer7:
         alerts = self.weather.active_alerts()
         for alert in alerts:
             alert["color"] = RED
-        # Add no alert pill if there weren't any
-        if not alerts:
-            alerts = [{"text": "No Alerts", "color": BLACK}]
+
         # Add holidays
         for holiday_date, holiday_name in holidays.items():
             days_until = (holiday_date - datetime.date.today()).days
-            if 0 < days_until <= 14:
+            if 0 < days_until <= 30:
                 alerts.append(
                     {
                         "text": holiday_name,
@@ -355,7 +328,7 @@ class ImageComposer7:
         top = 265
         left = 5
         for alert in alerts:
-            text = alert["text"].upper()
+            text = alert["text"]
             text_width = self.draw_text(
                 context,
                 text,
@@ -388,36 +361,21 @@ class ImageComposer7:
             left += 30 + subtext_width
 
     def draw_stats(self, context: cairo.Context):
-        # Draw sunrise, sunset, AQI icon and values
-        self.draw_icon(context, "rise-set-aqi", (450, 300))
+        # Draw sunrise, sunset icon and values
+        self.draw_icon(context, "rise-set-aqi", (450, 337))
         self.draw_text(
             context,
-            position=(505, 337),
+            position=(505, 372),
             text=self.weather.sunrise().astimezone(self.timezone).strftime("%H:%M"),
             color=BLACK,
             size=32,
         )
         self.draw_text(
             context,
-            position=(505, 385),
+            position=(505, 422),
             text=self.weather.sunset().astimezone(self.timezone).strftime("%H:%M"),
             color=BLACK,
             size=32,
-        )
-        # Pick AQI text and color
-        aqi = self.weather.aqi()
-        if aqi < 50:
-            color = GREEN
-        elif aqi < 150:
-            color = ORANGE
-        else:
-            color = RED
-        text_width = self.draw_text(context, aqi, size=30, weight="bold", noop=True)
-        self.draw_roundrect(context, 505, 402, text_width + 13, 36, 3)
-        context.set_source_rgb(*color)
-        context.fill()
-        self.draw_text(
-            context, position=(510, 430), text=aqi, color=WHITE, size=30, weight="bold"
         )
 
     def draw_roundrect(self, context, x, y, width, height, r):
