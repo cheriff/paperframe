@@ -46,6 +46,7 @@ While appropriate images are compliant PNGs and compatible with any viewer (as b
 
 * File *must* be 600x448 resolution
 * File *must* be palletized and use 4 bits per pixel
+* File *must* not be interlaced
 * Pallete *must* be exactly 7 colours long
     * Hence, only colours 0-6 may be used.
 * File *must* only use row filter `0`.
