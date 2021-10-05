@@ -18,50 +18,48 @@ flush_imgBuff( pngStream_t *stream, size_t size, void *data )
 {
     log_debug( "FLUSHING: %d @ %p\n", size, data);
     static uint8_t line[300];
-    static int currentX = 0; // in bytes (2 pixels)
-    static int currentY = 0;
     uint8_t *buff = data;
 
-    if (currentX==0 && currentY==0) {
+    if (stream->currentX==0 && stream->currentY==0) {
         log_debug( "Will BEGIN epd\n");
         epdBegin( &epd );
     }
 
     for( int i=0; i<size; i++) {
-        assert( currentX < 300 );
+        assert( stream->currentX < 300 );
 
-        if (currentX == 0 ){
+        if (stream->currentX == 0 ){
             uint8_t filter = buff[i++];
             if (filter != 0){
-                log_fatal("Unsupported filter on row %d: %d", currentY, filter );
+                log_fatal("Unsupported filter on row %d: %d",
+                        stream->currentY, filter );
             }
             assert( filter == 0 && "Only unfiltered for now" );
         }
 
         uint8_t byte = buff[i];
-        line[ currentX ] = byte;
+        line[ stream->currentX ] = byte;
 
 #if defined( VIZ_DECODE )
         int hi = (byte >> 4) & 0xf;
         int lo = (byte >> 0) & 0xf;
 
-        int x = currentX*2; // in pixels
-        itermImagePut( stream->image, x++, currentY,
+        int x = stream->currentX*2; // in pixels
+        itermImagePut( stream->image, x++, stream->currentY,
                 stream->pallete[hi*3 + 0],
                 stream->pallete[hi*3 + 1],
                 stream->pallete[hi*3 + 2]);
-        itermImagePut( stream->image, x++, currentY,
+        itermImagePut( stream->image, x++, stream->currentY,
                 stream->pallete[lo*3 + 0],
                 stream->pallete[lo*3 + 1],
                 stream->pallete[lo*3 + 2]);
 #endif
 
-        if ( ++currentX == 300 ) {
+        if ( ++stream->currentX == 300 ) {
             log_debug( "Pushing 300Bytes" );
             epdPush( &epd, line, 300 );
-            currentY++;
-            currentX = 0;
-            // FLUSH ROW!
+            stream->currentY++;
+            stream->currentX = 0;
         }
     }
 }

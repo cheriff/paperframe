@@ -66,8 +66,6 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
     int now = board_millis();
     printf("COMPLETE: Transfer: %d ms\n", rx - starttime);
     printf("Display: %d ms\n", now - rx );
-    watchdog_reboot(0,0,0);
-
   }
 }
 

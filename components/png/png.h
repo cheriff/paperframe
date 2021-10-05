@@ -50,6 +50,11 @@ struct pngStream {
     int action;
     IHDR_t imageHeader;
 
+    // Track the pixel row being flushed into
+    int currentY;
+    // and the current position therein
+    int currentX; // in bytes (2 pixels)
+
 #if defined (VIZ_DECODE )
     uint8_t *pallete;
     itermImage_t *image;
