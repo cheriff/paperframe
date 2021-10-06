@@ -11,14 +11,14 @@ import signal
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 
-from weather import ImageComposer7
+from weather import Weather
 
 def handler(signum, frame):
     print("Sigterm - exiting")
     sys.exit(1)
 signal.signal(signal.SIGTERM, handler)
 
-class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
+class RequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         print(self.headers.items())
 
@@ -34,7 +34,7 @@ class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
             return
 
 
-        composer = ImageComposer7(
+        composer = Weather(
             api_key=api_key,
             lat=lat, long=lon,
             timezone=tz
@@ -54,7 +54,7 @@ class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
 def run():
     print('starting server...')
     server_address = ('0.0.0.0', 8003)
-    httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
+    httpd = HTTPServer(server_address, RequestHandler)
     print('running server...')
     sys.stdout.flush()
     httpd.serve_forever()

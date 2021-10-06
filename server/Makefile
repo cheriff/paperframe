@@ -7,7 +7,7 @@ venv/pyvenv.cfg:
 
 .PHONY: run
 run: | venv/pyvenv.cfg
-	. ./venv/bin/activate && python server/weather.py
+	. ./venv/bin/activate && PICKLE=weather.pickle python server/weather.py
 
 .PHONY: serve
 serve: | venv/pyvenv.cfg
