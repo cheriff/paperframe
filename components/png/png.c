@@ -1,11 +1,7 @@
 #include "png.h"
 #include "logging/logging.h"
-#include "epd.h"
-#include "led.h"
 
 #define htonl(_x) __builtin_bswap32(_x)
-
-struct EPD epd;
 
 enum StreamAction {
     ACTION_ACCUMULATE = 1,
@@ -19,11 +15,6 @@ flush_imgBuff( pngStream_t *stream, size_t size, void *data )
     log_debug( "FLUSHING: %d @ %p\n", size, data);
     uint8_t *line = stream->line;
     uint8_t *buff = data;
-
-    if (stream->currentX==0 && stream->currentY==0) {
-        log_debug( "Will BEGIN epd\n");
-        epdBegin( &epd );
-    }
 
     for( int i=0; i<size; i++) {
         assert( stream->currentX < 300 );
@@ -57,7 +48,7 @@ flush_imgBuff( pngStream_t *stream, size_t size, void *data )
 
         if ( ++stream->currentX == 300 ) {
             log_debug( "Pushing 300Bytes" );
-            epdPush( &epd, line, 300 );
+            stream->callbacks.imageRow( stream, stream->currentY, line, 300 );
             stream->currentY++;
             stream->currentX = 0;
         }
@@ -206,16 +197,10 @@ validateIHeader(pngStream_t *stream, size_t size, void *data)
 
     drop( stream, 4, nextChunk );
 
-    led_set_interval( BLINK_BUSY );
-    log_trace( "Creating EPD" );
-    createEpd( &epd, spi0 );
-    log_trace( "Initd EPD" );
-    initEpd( &epd );
-    log_trace( "Will clear EPD" );
-    epdClear( &epd );
-    log_trace( "EPD is initialised" );
-
-    // TODO: validate items and abort if incorrect
+    if (stream->callbacks.imageStart) {
+        stream->callbacks.imageStart( stream );
+    }
+    // TODO: validate items and abort if callback complains
 }
 
 void
@@ -263,10 +248,9 @@ parseChunk(pngStream_t *stream, size_t size, void *data)
             break;
         case FOURCC_IEND:
             log_info("IEND: Image is finished");
-            epdEnd( &epd );
-            epdSleep( &epd );
-            log_trace( "Epd sleeping" );
-            led_set_interval( BLINK_STANDBY );
+            if (stream->callbacks.imageEnd) {
+                stream->callbacks.imageEnd( stream );
+            }
             assert( length == 0 );
             drop( stream, 4, endOfFile );
 #if defined( VIZ_DECODE )

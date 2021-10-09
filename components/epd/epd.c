@@ -6,110 +6,70 @@
 const int EPD_WIDTH       = 600;
 const int EPD_HEIGHT      = 448;
 
-#define EPD_NOP 0
-
-int
-createEpd( struct EPD *epd, spi_inst_t * spi)
-{
-    epd->RST = 21;
-    epd->DC = 20;
-    epd->BUSY = 19;
-    epd->CS = 18;
-    epd->MOSI = 7;
-    epd->SCK = 6;
-    epd->spi = spi;
-    epd->numPushed = 0;
-    return 0;
-}
-
+#define gpio_put( _pin, _val ) epd->callbacks.pin_set( epd, epd->pins._pin, _val )
+#define gpio_get( _pin ) epd->callbacks.pin_get( epd, epd->pins._pin )
+#define sleep_ms( _ms ) epd->callbacks.sleep_ms( epd, _ms )
+#define spi_write_blocking( _buff, _sz ) epd->callbacks.spi_write( epd, _buff, _sz )
 
 static void
-resetEpd( struct EPD *epd )
+resetEpd( epd_t *epd )
 {
-    if (EPD_NOP) return;
-    gpio_put( epd->RST, 1);
+    gpio_put( RST, 1);
     sleep_ms(600);
-    gpio_put( epd->RST, 0);
+    gpio_put( RST, 0);
     sleep_ms(2);
-    gpio_put( epd->RST, 1);
+    gpio_put( RST, 1);
     sleep_ms(200);
 }
 
 
 static void
-epdSendCommand( struct EPD *epd, const uint8_t cmd )
+epdSendCommand( epd_t *epd, const uint8_t cmd )
 {
-    if (EPD_NOP) return;
-    gpio_put( epd->DC, 0);
-    gpio_put( epd->CS, 0);
-    spi_write_blocking( epd->spi, &cmd, 1 );
-    gpio_put( epd->CS, 1);
+    gpio_put( DC, 0);
+    gpio_put( CS, 0);
+    spi_write_blocking( &cmd, 1 );
+    gpio_put( CS, 1);
 }
 
 static void
-epdSendData( struct EPD *epd, const uint8_t *src, size_t sz )
+epdSendData( epd_t *epd, const uint8_t *src, size_t sz )
 {
-    if (EPD_NOP) return;
-    gpio_put( epd->DC, 1);
-    gpio_put( epd->CS, 0);
-    spi_write_blocking( epd->spi, src, sz );
-    gpio_put( epd->CS, 1);
+    gpio_put( DC, 1);
+    gpio_put( CS, 0);
+    spi_write_blocking( src, sz );
+    gpio_put( CS, 1);
 }
 
 static void
-epdSendData1( struct EPD *epd, const uint8_t d )
+epdSendData1( epd_t *epd, const uint8_t d )
 {
-    if (EPD_NOP) return;
     epdSendData( epd, &d, 1 );
 }
 
 static void
-epdReadBusyHigh( struct EPD *epd )
+epdReadBusyHigh( epd_t *epd )
 {
-    if (EPD_NOP) return;
     printf("Waiting BusyHigh ..\n" );
-    while( gpio_get( epd->BUSY ) == 0) {
+    while( gpio_get( BUSY ) == 0) {
         sleep_ms(100);
     }
     printf("Waiting Done\n" );
 }
 
 static void
-epdReadBusyLow( struct EPD *epd )
+epdReadBusyLow( epd_t *epd )
 {
-    if (EPD_NOP) return;
     printf("Waiting BusyLow..\n" );
-    while( gpio_get( epd->BUSY ) == 1) {
+    while( gpio_get( BUSY ) == 1) {
         sleep_ms(100);
     }
     printf("Waiting Done\n" );
 }
 
 int
-initEpd( struct EPD *epd )
+initEpd( epd_t *epd )
 {
-
-    gpio_set_function(epd->SCK, GPIO_FUNC_SPI);
-    gpio_set_function(epd->MOSI, GPIO_FUNC_SPI);
-    uint actual = spi_init(epd->spi, 4000000 );
-    printf("Enabled SPI (SCK: %d, MOSI: %d) @%dHz\n",
-            epd->SCK, epd->MOSI, actual);
-
-    gpio_init( epd->RST );
-    gpio_set_dir( epd->RST, GPIO_OUT);
-    printf( "Enabled RST( %d )\n", epd->RST);
-    gpio_init( epd->DC );
-    gpio_set_dir( epd->DC, GPIO_OUT);
-    printf( "Enabled DC( %d )\n", epd->RST);
-    gpio_init( epd->CS );
-    gpio_set_dir( epd->CS, GPIO_OUT);
-    printf( "Enabled CS( %d )\n", epd->RST);
-
-    gpio_init( epd->BUSY );
-    gpio_set_dir( epd->BUSY, GPIO_IN);
-    printf( "Enabled BUSY( %d )\n", epd->RST);
-
-
     /* reset process */
     resetEpd( epd );
     epdReadBusyHigh( epd );
@@ -151,7 +111,7 @@ initEpd( struct EPD *epd )
 }
 
 void
-epdBegin( struct EPD *epd )
+epdBegin( epd_t *epd )
 {
     epdSendCommand( epd, 0x61 ); //Set Resolution setting
     epdSendData1( epd, 0x02);
@@ -159,16 +119,15 @@ epdBegin( struct EPD *epd )
     epdSendData1( epd, 0x01);
     epdSendData1( epd, 0xC0);
     epdSendCommand( epd,0x10);
-    epd->numPushed = 0;
 }
 
 void
-epdPush( struct EPD *epd, uint8_t *data, size_t len )
+epdPush( epd_t *epd, const uint8_t *data, size_t len )
 {
     epdSendData( epd, data, len );
 }
 
-void epdClear( struct EPD *epd )
+void epdClear( epd_t *epd )
 {
     uint8_t row[ EPD_WIDTH / 2 ];
 
@@ -193,7 +152,7 @@ void epdClear( struct EPD *epd )
     epdEnd( epd );
 }
 
-void epdEnd( struct EPD *epd )
+void epdEnd( epd_t *epd )
 {
     epdSendCommand( epd, 0x04); //0x04
     epdReadBusyHigh( epd );
@@ -204,10 +163,10 @@ void epdEnd( struct EPD *epd )
     sleep_ms(500);
 }
 
-void epdSleep( struct EPD *epd )
+void epdSleep( epd_t *epd )
 {
     sleep_ms(500);
     epdSendCommand( epd, 0x07); //DEEP_SLEEP
     epdSendData1( epd, 0XA5);
-    gpio_put( epd->RST, 0);
+    gpio_put( RST, 0);
 }

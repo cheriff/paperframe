@@ -39,7 +39,7 @@ int LogLevel = LOG_INFO;
 #include "tusb.h"
 
 #include "led.h"
-#include "epd.h"
+#include "epd/epd.h"
 #include "serial.h"
 
 
@@ -53,6 +53,9 @@ int main(void)
 
     r = led_init();
     log_debug( "Did LED init: %d\n", r );
+
+    init_serial();
+    printf( "Did serial init\n" );
 
     printf("Hello on the UART test\n");
     printf("OK\n");

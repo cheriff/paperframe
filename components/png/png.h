@@ -45,6 +45,12 @@ typedef struct {
     uint8_t *next_out;
 } deflateContext_t;
 
+typedef struct {
+    int (* imageStart )( pngStream_t* );
+    int (* imageRow )( pngStream_t*, int rowY, const uint8_t* buff, size_t byteSize );
+    int (* imageEnd )( pngStream_t* );
+} pngStream_callbacks_t;
+
 struct pngStream {
     int valid;
     int action;
@@ -74,6 +80,9 @@ struct pngStream {
         uint8_t *destination;
         andThen_f next;
     } accumulator;
+
+    pngStream_callbacks_t callbacks;
+    void *callbackPriv;
 };
 
 /* Entry point! */

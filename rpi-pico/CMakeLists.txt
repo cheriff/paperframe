@@ -9,12 +9,13 @@ pico_sdk_init()
 
 add_executable(paperframe
         paperframe.c
+
         led.c
         serial.c
-
-        epd.c
         usb_descriptors.c
+        epd_pico.c
 
+        ../components/epd/epd.c
         ../components/png/png.c
         ../components/miniz/miniz.c
 )
