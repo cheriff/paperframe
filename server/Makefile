@@ -12,6 +12,7 @@ run: | venv/pyvenv.cfg
 .PHONY: serve
 serve: | venv/pyvenv.cfg
 	@echo KEY IS $(APIKEY)
+	#. ./venv/bin/activate && PICKLE=weather.pickle python server/serve.py
 	. ./venv/bin/activate && python server/serve.py
 
 

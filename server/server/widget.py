@@ -146,6 +146,7 @@ class WidgetBase( object ):
         return width
 
     def draw_icon(self, context: cairo.Context, icon: str, position: Tuple[int, int]):
+        print ( "LOADING ICON", icon )
         path = os.path.join(os.path.dirname(__file__), "icons-7", f"{icon}.svg")
         h = rsvg.Handle( path )
 

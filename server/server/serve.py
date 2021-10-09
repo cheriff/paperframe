@@ -55,7 +55,7 @@ def run():
     print('starting server...')
     server_address = ('0.0.0.0', 8003)
     httpd = HTTPServer(server_address, RequestHandler)
-    print('running server...')
+    print('running server...', server_address)
     sys.stdout.flush()
     httpd.serve_forever()
 
