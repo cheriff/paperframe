@@ -2,7 +2,6 @@
 #define __LOGGING_H__
 
 #include <stdio.h>
-#include "bsp/board.h"
 
 /* Substantially based on https://github.com/rxi/log.c, under MIT license */
 
@@ -30,6 +29,25 @@
 
 #include <time.h>
 #include <stdarg.h>
+
+#if ESP_PLATFORM
+#include "freertos/FreeRTOS.h"
+#include "esp_timer.h"
+static inline uint32_t
+logging_now(void)
+{
+    return esp_timer_get_time()/1000;
+}
+#elif LIB_PICO_PLATFORM
+#include "pico/time.h"
+static inline uint32_t
+logging_now(void)
+{
+    return to_ms_since_boot(get_absolute_time());
+}
+#else
+#error unknown platform
+#endif
 
 // You should devine this somewhere
 extern int LogLevel;
@@ -70,7 +88,7 @@ typedef struct {
 
 static void init_event(log_Event *ev, void *udata) {
   if (!ev->time) {
-    ev->time = board_millis();
+    ev->time = logging_now();
   }
   ev->udata = udata;
 }
