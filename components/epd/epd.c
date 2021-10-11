@@ -27,18 +27,17 @@ static void
 epdSendCommand( epd_t *epd, const uint8_t cmd )
 {
     gpio_put( DC, 0);
-    gpio_put( CS, 0);
+    // it is up to the platform implementation (sw or hw)
+    // to manage ChipSelect
     spi_write_blocking( &cmd, 1 );
-    gpio_put( CS, 1);
 }
 
 static void
 epdSendData( epd_t *epd, const uint8_t *src, size_t sz )
 {
     gpio_put( DC, 1);
-    gpio_put( CS, 0);
+    // again, CS managed in platform layer
     spi_write_blocking( src, sz );
-    gpio_put( CS, 1);
 }
 
 static void
